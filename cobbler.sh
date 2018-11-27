@@ -11,7 +11,15 @@ yum -y install cobbler cobbler-web dhcp tftp-server pykickstart httpd python-dja
 systemctl enable cobblerd httpd tftp.socket rsyncd
 systemctl start cobblerd httpd tftp.socket rsyncd
 
+# 修改tftp相关配置
+
+
+# 下载boot-loaders
+/usr/bin/cobbler get-loaders
+
 # 修改cobbler配置文件
+sed -i '14s#yes#no#' /etc/xinetd.d/tftp
+
 
 # 防止误重装
 subnet=172.16.1
@@ -23,6 +31,8 @@ sed -i "s#manage_dhcp: 0#manage_dhcp: 1#" /etc/cobbler/settings
 sed -i.ori "s#192.168.1#$subnet#g;22d;23d" /etc/cobbler/dhcp.template
 # 修改server和next-server地址
 sed -i "s#server: 127.0.0.1#server: $cobbler_ip#;s#next_server: 127.0.0.1#next_server: $cobbler_ip#" /etc/cobbler/settings
+# 修改系统的密码为123456 可以根据需求使用openssl passwd -1 生成新的加密密码
+sed -i "s#$1$mF86/UHC$WvcIcX2t6crBz2onWxyac.#$1$gAR8NnAS$7B21qYq0J2oQt06wdlT5T.#g" /etc/cobbler/settings
 
 # 重启cobbler
 systemctl restart httpd
