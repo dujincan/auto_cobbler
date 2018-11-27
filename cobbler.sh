@@ -14,16 +14,23 @@ systemctl start cobblerd httpd tftp.socket rsyncd
 # 修改cobbler配置文件
 
 # 防止误重装
-sed -i 's/pxe_just_once: 0/pxe_just_once: 1/' /etc/cobbler/settings 
+subnet=172.16.1
+cobbler_ip=$(/usr/sbin/ip addr show eth1 |awk -F "[ /]*" 'NR==3{print $3}')
+sed -i "s#pxe_just_once: 0#pxe_just_once: 1#" /etc/cobbler/settings 
 # 配置Cobbler统一管理DHCP
-sed -i 's/manage_dhcp: 0/manage_dhcp: 1/' /etc/cobbler/settings
+sed -i "s#manage_dhcp: 0#manage_dhcp: 1#" /etc/cobbler/settings
 # 配置DHCP Cobbler模版
-sed -i.ori 's#192.168.1#172.16.1#g;22d;23d' /etc/cobbler/dhcp.template
+sed -i.ori "s#192.168.1#$subnet#g;22d;23d" /etc/cobbler/dhcp.template
 # 修改server和next-server地址
-sed -i 's#server: 127.0.0.1#server: 172.16.1.202#;s#next_server: 127.0.0.1#next_server: 172.16.1.202#' /etc/cobbler/settings
+sed -i "s#server: 127.0.0.1#server: $cobbler_ip#;s#next_server: 127.0.0.1#next_server: $cobbler_ip#" /etc/cobbler/settings
 
 # 重启cobbler
-/usr/bin/cobbler sync
+systemctl restart httpd
 systemctl restart cobblerd
+/usr/bin/cobbler sync
+
+# 访问信息
+ext_ip=$(/usr/sbin/ip addr show eth0 |awk -F "[ /]*" 'NR==3{print $3}')
+echo -e "######## Cobbler installed successfully ########\nplease visit https://$ext_ip/cobbler_web\nuser=cobbler password=cobbler"
 
 
