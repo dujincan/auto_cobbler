@@ -21,13 +21,13 @@ subnet=172.16.1 # dhcp网段
 
 cobbler_ip=$(/usr/sbin/ip addr show eth1 |awk -F "[ /]*" 'NR==3{print $3}') # cobbler server 用于tftp server及http server的网卡ip
 
-sed -i '14s#yes#no#' /etc/xinetd.d/tftp# 修改tftp相关配置
+sed -i '/disable/s#yes#no#' /etc/xinetd.d/tftp # 修改tftp相关配置
 
-sed -i "s#pxe_just_once: 0#pxe_just_once: 1#" /etc/cobbler/settings # 防止误重装
+sed -i.bak "s#pxe_just_once: 0#pxe_just_once: 1#" /etc/cobbler/settings # 防止误重装
 
 sed -i "s#manage_dhcp: 0#manage_dhcp: 1#" /etc/cobbler/settings # 配置Cobbler统一管理DHCP
 
-sed -i.ori "s#192.168.1#$subnet#g;22d;23d" /etc/cobbler/dhcp.template # 配置DHCP Cobbler模版
+sed -i.bak "s#192.168.1#$subnet#g;22d;23d" /etc/cobbler/dhcp.template # 配置DHCP Cobbler模版
 
 sed -i "s#server: 127.0.0.1#server: $cobbler_ip#;s#next_server: 127.0.0.1#next_server: $cobbler_ip#" /etc/cobbler/settings # 修改server和next-server地址
 
